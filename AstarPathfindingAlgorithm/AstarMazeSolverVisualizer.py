@@ -78,12 +78,12 @@ class Node():
     def set_path(self):
         self.color = PURPLE
     
-    def draw(self, WIN):
+    def draw(self):
       # Draws the node in the display
-      pygame.draw.rect(WIN, self.color, (self.x,self.y,self.width, self.width))
+      pygame.draw.rect(WINDOW, self.color, (self.x,self.y,self.width, self.width))
 
 class Maze():
-    def __init__(self, ROWS,COLUMNS,SPARSITY, WIN_WIDTH):
+    def __init__(self, ROWS,COLUMNS,SPARSITY):
     # Creates a Maze of ROWSxCOLUMNS. Sparsity is an index between 0 and 1 to measure the amount of obstacles (the lower, the lesser)
         
         self.map = [] # Will contain the maze
@@ -98,7 +98,7 @@ class Maze():
         self.end = None
 
         # Cubicle dimension of a spot, assuming ROWS = COLUMNS (square maze)
-        gap = WIN_WIDTH // ROWS
+        gap = WINDOW_WIDTH // ROWS
         
         for row in range(ROWS):
             rowList = []
@@ -155,40 +155,38 @@ class Maze():
       # Computes the Manhattan distance of a given node with respect to the goal node
         return abs(node.row - self.end.row) + abs(node.col - self.end.col)
 
-    def draw_maze_grid(self, WIN, WIN_WIDTH):
+    def draw_maze_grid(self):
         # Draws the grid in which the nodes are displayed
 
-        gap = WIN_WIDTH // self.rows
+        gap = WINDOW_WIDTH // self.rows
         for i in range(self.rows):
             # Draw horizontal line for each row
-            pygame.draw.line(WIN, GREY, (0,i*gap),(WIN_WIDTH, i*gap))
+            pygame.draw.line(WINDOW, GREY, (0,i*gap),(WINDOW_WIDTH, i*gap))
             for j in range(self.rows):
                 # Draw vertical line for each column
-                pygame.draw.line(WIN, GREY, (j*gap, 0), (j*gap, WIN_WIDTH))
+                pygame.draw.line(WINDOW, GREY, (j*gap, 0), (j*gap, WINDOW_WIDTH))
 
-    def draw_maze(self, WIN, WIN_WIDTH):
+    def draw_maze(self):
         # Draws the nodes and the grid of the maze
 
         # At beginning of every frame, we paint over the maze and re-draw from scratch
-        WIN.fill(WHITE)
+        WINDOW.fill(WHITE)
         # Draw each node
         for row in self.map:
             for spot in row:
-                spot.draw(WIN)
+                spot.draw()
         # Draw the grid
-        self.draw_maze_grid(WIN, WIN_WIDTH)
+        self.draw_maze_grid()
         pygame.display.update()
     
     def retrieve_path(self):
         current = self.end
-        current_pos = self.end.get_pos()
-        
-        while current_pos != self.start.get_pos():
-            current = self.AlgorithmTable[current_pos][2]
-            current_pos = self.AlgorithmTable[current_pos][2].get_pos()
-            current.set_path()
-            self.draw_maze(WINDOW, WINDOW_WIDTH)
+        current.set_path()
 
+        while current.get_pos() != self.start.get_pos():
+            current = self.AlgorithmTable[current.get_pos()][2]
+            current.set_path()
+            self.draw_maze()
 
     def A_star_pathFinder(self):
         # Variable to track the order of elements in priority queue
@@ -235,7 +233,7 @@ class Maze():
                         q_hash.add(neighbor)
                         neighbor.set_to_visit() # Change its color so it can be displayed
 
-            self.draw_maze(WINDOW, WINDOW_WIDTH)
+            self.draw_maze()
             # Update the current node to visited
             if current_pos.get_pos() != self.start.get_pos():
                 current_pos.set_visited()        
@@ -243,10 +241,10 @@ class Maze():
                 
         return False
     
-def get_clicked_pos(pos, WIN_WIDTH, rows):
+def get_clicked_pos(pos, rows):
         # Returns the row and column in the pygame window corresponing to the clicked position
 
-        gap = WIN_WIDTH//rows
+        gap = WINDOW_WIDTH//rows
         y,x = pos
         row = y//gap
         col = x//gap
@@ -256,21 +254,21 @@ def main():
     DIM = 50 # Maze dimension (square)
     SPARSITY = 0.8 # Index of obstacles density
     # Create a maze instance
-    myMaze = Maze(DIM, DIM, SPARSITY, WINDOW_WIDTH)
+    myMaze = Maze(DIM, DIM, SPARSITY)
 
     # Variables to check maze solver status
     run = True
     started = False
 
     while run:
-        myMaze.draw_maze(WINDOW, WINDOW_WIDTH)
+        myMaze.draw_maze()
         for event in pygame.event.get():  # Detects actions while display ON
             if event.type == pygame.QUIT: 
                 run = False
 
             if pygame.mouse.get_pressed()[0]: # If left mouse button is pressed
                 pos = pygame.mouse.get_pos()
-                row,col = get_clicked_pos(pos, WINDOW_WIDTH, DIM) # Retrieve row, col in maze
+                row,col = get_clicked_pos(pos, DIM) # Retrieve row, col in maze
                 spot = myMaze.map[row][col] # Get the node in the clicked position
                 # In case the start was not defined, make it
                 if not myMaze.start and not spot.is_obstacle() and not spot.is_goal():
@@ -300,7 +298,7 @@ def main():
                     myMaze.A_star_pathFinder()
 
                 if event.key == pygame.K_r and myMaze.start and myMaze.end: # If R is pressed on keyboard, reset everything
-                    myMaze = Maze(DIM, DIM, SPARSITY, WINDOW_WIDTH)
+                    myMaze = Maze(DIM, DIM, SPARSITY)
 
 
 
