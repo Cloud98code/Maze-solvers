@@ -104,7 +104,7 @@ class Maze():
             rowList = []
             for col in range(COLUMNS):
                 # If random number is 0, generate free position, if it is 1, generate an obstacle
-                if  np.random.choice([0, 1], 1, p=[SPARSITY, 1-SPARSITY]):
+                if not np.random.choice([0, 1], 1, p=[SPARSITY, 1-SPARSITY]):
                   # Create a free node istance and append it to the maze 
                   node = Node(row, col, gap)
                   node.set_free()
@@ -254,7 +254,7 @@ def get_clicked_pos(pos, WIN_WIDTH, rows):
 
 def main():
     DIM = 50 # Maze dimension (square)
-    SPARSITY = 0.2 # Index of obstacles density
+    SPARSITY = 0.8 # Index of obstacles density
     # Create a maze instance
     myMaze = Maze(DIM, DIM, SPARSITY, WINDOW_WIDTH)
 
