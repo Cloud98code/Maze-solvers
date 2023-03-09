@@ -65,10 +65,6 @@ class Maze():
         if node.col+1 < self.cols and not self.map[node.row][node.col+1].is_obstacle():
             node.neighbors.append(self.map[node.row][node.col+1])  
 
-    def Manhattan(self, node):
-      # Computes the Manhattan distance of a given node with respect to the goal node
-        return abs(node.row - self.end.row) + abs(node.col - self.end.col)
-
     def draw_maze_grid(self):
         # Draws the grid in which the nodes are displayed
 
@@ -116,6 +112,9 @@ class Maze():
             if current_node.get_pos() == self.end.get_pos():
                 self.goalFound = True
                 return True
+            # Stop exploring if goal has been found
+            if self.goalFound:
+                return True
             # If none of above, add current node to visited nodes
             visited_nodes.add(current_node)
             current_node.set_visited()
@@ -124,8 +123,7 @@ class Maze():
             # Recursively check neighbors
             for neighbor in current_node.neighbors:
                 self.draw_maze()
-                if not self.goalFound:
-                    recursive_dfs(neighbor)
+                recursive_dfs(neighbor)
 
         recursive_dfs(self.start)
         return False

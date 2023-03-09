@@ -2,7 +2,7 @@ from maze import *
 from functions import *
 
 def main():
-    DIM = 50 # Maze dimension (square)
+    DIM = 30 # Maze dimension (square)
     SPARSITY = 0.8 # Index of obstacles density
     # Create a maze instance
     myMaze = Maze(DIM, DIM, SPARSITY)
@@ -46,8 +46,8 @@ def main():
             if event.type == pygame.KEYDOWN:
                 # If start and end are defined and blank space is pressed, start the A* algorithm
                 if event.key == pygame.K_SPACE and not started and myMaze.start and myMaze.end:
-                    #myMaze.Depth_First_search()
-                    myMaze.Breadth_first_search()
+                    myMaze.Depth_First_search()
+                    #myMaze.Breadth_first_search()
 
                 if event.key == pygame.K_r and myMaze.start and myMaze.end: # If R is pressed on keyboard, reset everything
                     myMaze = Maze(DIM, DIM, SPARSITY)
