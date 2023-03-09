@@ -1,6 +1,7 @@
 from node import *
 import numpy as np
 import queue
+import random
 
 class Maze():
     def __init__(self, ROWS,COLUMNS,SPARSITY):
@@ -102,13 +103,14 @@ class Maze():
     def Depth_First_search(self):
         # Initialize set to contain visited nodes
         visited_nodes = set()
+        # Flag to verify goal 
         self.goalFound = False
 
         def recursive_dfs(current_node):
             # Skip node if already visited
             if current_node in visited_nodes:
                 return True
-            # Retrieve path if goal is found
+            # Set stop condition if goal is found
             if current_node.get_pos() == self.end.get_pos():
                 self.goalFound = True
                 return True
@@ -120,6 +122,8 @@ class Maze():
             current_node.set_visited()
             # Retrieve nodes neighbors
             self.getNeighbors(current_node)
+            # Shuffle neighbors to randomize exploration
+            random.shuffle(current_node.neighbors)
             # Recursively check neighbors
             for neighbor in current_node.neighbors:
                 self.draw_maze()
