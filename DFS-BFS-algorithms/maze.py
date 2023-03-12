@@ -1,87 +1,7 @@
-from queue import PriorityQueue
+from node import *
 import numpy as np
-import pygame
 import queue
-
-# Set up the display
-WINDOW_WIDTH = 800 # Square dimension
-WINDOW = pygame.display.set_mode((WINDOW_WIDTH,WINDOW_WIDTH))
-pygame.display.set_caption("Maze solver")
-
-
-# Colors for path finder visualization
-RED = (255, 0, 0)
-GREEN = (0, 255, 0)
-BLUE = (0, 0, 255)
-WHITE = (255, 255, 255)
-BLACK = (0, 0, 0)
-PURPLE = (128, 0, 128)
-ORANGE= (255, 165, 0)
-GREY = (128, 128, 128)
-
-class Node():
-    # White nodes are free
-    # Black nodes are obstacles
-    # Blue node is start
-    # Orange node is finish
-    # Red nodes have been visited
-    # Green nodes are in the queue
-    # Purple nodes are part of final path
-
-
-    def __init__(self, row, col, cube_width):
-        self.row = row
-        self.col = col
-        # Variables to draw the cube inside the display
-        self.width = cube_width
-        self.y = row*cube_width
-        self.x = col*cube_width 
-        # Node color not defined
-        self.color = None
-        # Stores accessible neighbors
-        self.neighbors = []
-    
-    def get_pos(self):
-      # Outputs coordinates as a tuple
-
-      return (self.row,self.col)
-
-    def is_free(self):
-        return self.color == WHITE
-    
-    def is_obstacle(self):
-        return self.color == BLACK
-
-    def is_start(self):
-      return self.color == BLUE
-
-    def is_goal(self):
-        return self.color == ORANGE
-
-    def set_free(self):
-        self.color = WHITE
-    
-    def set_obstacle(self):
-        self.color = BLACK
-
-    def set_visited(self):
-        self.color = RED
-        
-    def set_to_visit(self):
-        self.color = GREEN
-
-    def set_start(self):
-        self.color = BLUE
-
-    def set_goal(self):
-        self.color = ORANGE
-
-    def set_path(self):
-        self.color = PURPLE
-    
-    def draw(self):
-      # Draws the node in the display
-      pygame.draw.rect(WINDOW, self.color, (self.x,self.y,self.width, self.width))
+import random
 
 class Maze():
     def __init__(self, ROWS,COLUMNS,SPARSITY):
@@ -146,10 +66,6 @@ class Maze():
         if node.col+1 < self.cols and not self.map[node.row][node.col+1].is_obstacle():
             node.neighbors.append(self.map[node.row][node.col+1])  
 
-    def Manhattan(self, node):
-      # Computes the Manhattan distance of a given node with respect to the goal node
-        return abs(node.row - self.end.row) + abs(node.col - self.end.col)
-
     def draw_maze_grid(self):
         # Draws the grid in which the nodes are displayed
 
@@ -187,26 +103,31 @@ class Maze():
     def Depth_First_search(self):
         # Initialize set to contain visited nodes
         visited_nodes = set()
+        # Flag to verify goal 
         self.goalFound = False
 
         def recursive_dfs(current_node):
             # Skip node if already visited
             if current_node in visited_nodes:
                 return True
-            # Retrieve path if goal is found
+            # Set stop condition if goal is found
             if current_node.get_pos() == self.end.get_pos():
                 self.goalFound = True
+                return True
+            # Stop exploring if goal has been found
+            if self.goalFound:
                 return True
             # If none of above, add current node to visited nodes
             visited_nodes.add(current_node)
             current_node.set_visited()
             # Retrieve nodes neighbors
             self.getNeighbors(current_node)
+            # Shuffle neighbors to randomize exploration
+            random.shuffle(current_node.neighbors)
             # Recursively check neighbors
             for neighbor in current_node.neighbors:
                 self.draw_maze()
-                if not self.goalFound:
-                    recursive_dfs(neighbor)
+                recursive_dfs(neighbor)
 
         recursive_dfs(self.start)
         return False
@@ -233,70 +154,3 @@ class Maze():
                     neighbor.set_to_visit()
             self.draw_maze()
         return False
-
-def get_clicked_pos(pos, rows):
-        # Returns the row and column in the pygame window corresponing to the clicked position
-
-        gap = WINDOW_WIDTH//rows
-        x,y = pos
-        row = y//gap
-        col = x//gap
-        return (row,col)
-
-def main():
-    DIM = 50 # Maze dimension (square)
-    SPARSITY = 0.8 # Index of obstacles density
-    # Create a maze instance
-    myMaze = Maze(DIM, DIM, SPARSITY)
-
-    # Variables to check maze solver status
-    run = True
-    started = False
-
-    while run:
-        myMaze.draw_maze()
-        for event in pygame.event.get():  # Detects actions while display ON
-            if event.type == pygame.QUIT: 
-                run = False
-
-            if pygame.mouse.get_pressed()[0]: # If left mouse button is pressed
-                pos = pygame.mouse.get_pos()
-                row,col = get_clicked_pos(pos, DIM) # Retrieve row, col in maze
-                spot = myMaze.map[row][col] # Get the node in the clicked position
-                # In case the start was not defined, make it
-                if not myMaze.start and not spot.is_obstacle() and not spot.is_goal():
-                    myMaze.set_startNode(spot)
-                
-                # In case the end was not defined, make it
-                elif not myMaze.end and not spot.is_obstacle() and not spot.is_start():
-                    myMaze.set_endNode(spot)
-
-            elif pygame.mouse.get_pressed()[2]: # If right mouse button is pressed
-                pos = pygame.mouse.get_pos()
-                row,col = get_clicked_pos(pos, WINDOW_WIDTH, DIM) # Retrieve row, col in maze
-                spot = myMaze.map[row][col] # Get the node in the clicked position
-                
-                # Reset the spot unless it is an obstacle
-                if spot.is_start():
-                    myMaze.start = None
-                    spot.set_free()
-
-                elif spot.is_goal():
-                    myMaze.end = None
-                    spot.set_free()
-            
-            if event.type == pygame.KEYDOWN:
-                # If start and end are defined and blank space is pressed, start the A* algorithm
-                if event.key == pygame.K_SPACE and not started and myMaze.start and myMaze.end:
-                    myMaze.Depth_First_search()
-                    #myMaze.Breadth_first_search()
-
-                if event.key == pygame.K_r and myMaze.start and myMaze.end: # If R is pressed on keyboard, reset everything
-                    myMaze = Maze(DIM, DIM, SPARSITY)
-
-
-
-    pygame.quit()
-
-if __name__ == '__main__':
-    main()
