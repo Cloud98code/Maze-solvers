@@ -44,10 +44,16 @@ def main():
                     spot.set_free()
             
             if event.type == pygame.KEYDOWN:
-                # If start and end are defined and blank space is pressed, start the A* algorithm
+                # If start and end are defined and blank space is pressed, let user choose which algorithm to use
                 if event.key == pygame.K_SPACE and not started and myMaze.start and myMaze.end:
-                    myMaze.Depth_First_search()
-                    #myMaze.Breadth_first_search()
+                    ans = input("You want to use DFS or BFS? ").lower()
+                    if ans == "dfs":
+                        myMaze.Depth_First_search()
+                    elif ans == "bfs":
+                        myMaze.Breadth_first_search()
+                    else:
+                        print("Invalid input")
+
 
                 if event.key == pygame.K_r and myMaze.start and myMaze.end: # If R is pressed on keyboard, reset everything
                     myMaze = Maze(DIM, DIM, SPARSITY)
